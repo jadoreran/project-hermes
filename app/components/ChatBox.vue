@@ -3,9 +3,9 @@
     <div class="chat-header">
       <div class="header-left">
         <span class="back-arrow">←</span>
-        <div class="header-avatar">C</div>
+        <div class="header-avatar">J</div>
         <div class="header-info">
-          <div class="header-name">Customer</div>
+          <div class="header-name">J</div>
           <div class="header-status">ลูกค้า - ออนไลน์</div>
         </div>
       </div>
@@ -39,7 +39,7 @@
             @click="selectOption(option)"
             @mouseenter="selectedIndex = index"
           >
-            <div class="option-title">{{ option.label }}</div>
+            <div class="option-title">{{ option.label }} - {{ option.category }}</div>
             <div class="option-preview">{{ option.text }}</div>
           </div>
         </div>
@@ -62,7 +62,6 @@
       </div>
 
       <div class="input-wrapper">
-        <button class="attach-button">📎</button>
         <input
           v-model="inputText"
           @input="handleInput"
@@ -88,13 +87,13 @@ const inputText = ref('')
 const showOptions = ref(false)
 const messages = ref([
   {
-    user: 'Customer',
+    user: 'J',
     text: 'สวัสดีครับ ผมสนใจสินค้าอยากสอบถามข้อมูล',
     time: '9:30 AM',
     isUser: false
   },
   {
-    user: 'Customer',
+    user: 'J',
     text: 'มีสินค้าตัวนี้สีอื่นไหมครับ?',
     time: '9:31 AM',
     isUser: false
@@ -112,63 +111,88 @@ const contextualSuggestions = ref([])
 const quickReplyOptions = ref([
   {
     label: 'ทักทาย',
+    category: 'greeting',
     text: 'สวัสดีค่ะ ยินดีให้บริการค่ะ มีอะไรให้ช่วยไหมคะ',
-    keywords: ['สวัสดี', 'hello', 'hi', 'ทักทาย', 'sawas', 'sawasdee', 'sawasdika']
+    keywords: ['สวัสดี', 'hello', 'hi', 'ทักทาย', 'sawas', 'sawasdee', 'sawasdika', 'gree']
   },
   {
     label: 'ขอบคุณ',
+    category: 'thanks',
     text: 'ขอบคุณที่ติดต่อเรานะคะ ยินดีให้บริการค่ะ',
     keywords: ['ขอบคุณ', 'thank', 'thanks', 'khob', 'khobkhun', 'ขอบ']
   },
   {
     label: 'สินค้ามีพร้อมส่ง',
+    category: 'stock',
     text: 'สินค้ามีพร้อมส่งค่ะ สั่งเลยได้เลยนะคะ',
-    keywords: ['พร้อมส่ง', 'มีสินค้า', 'stock', 'available', 'phrom', 'promson', 'พร้อม']
+    keywords: ['พร้อมส่ง', 'มีสินค้า', 'stock', 'available', 'phrom', 'promson', 'พร้อม', 'stoc']
   },
   {
     label: 'ราคา',
+    category: 'price',
     text: 'ราคาปกติ 590 บาท ตอนนี้ลดพิเศษเหลือ 399 บาทค่ะ',
-    keywords: ['ราคา', 'price', 'เท่าไหร่', 'raka', 'raka', 'thao', 'thaorai']
+    keywords: ['ราคา', 'price', 'เท่าไหร่', 'raka', 'thao', 'thaorai', 'pric']
   },
   {
     label: 'จัดส่ง',
+    category: 'shipping',
     text: 'จัดส่งฟรีทั่วไทยค่ะ ได้ของภายใน 2-3 วันค่ะ',
-    keywords: ['จัดส่ง', 'ship', 'delivery', 'ส่ง', 'jad', 'jadsong', 'song']
+    keywords: ['จัดส่ง', 'ship', 'delivery', 'ส่ง', 'jad', 'jadsong', 'song', 'shipp']
   },
   {
     label: 'สอบถามเพิ่มเติม',
+    category: 'question',
     text: 'มีอะไรอยากสอบถามเพิ่มเติมไหมคะ ยินดีตอบทุกคำถามนะคะ',
-    keywords: ['สอบถาม', 'ถาม', 'question', 'ask', 'sobtam', 'tam', 'tham']
+    keywords: ['สอบถาม', 'ถาม', 'question', 'ask', 'sobtam', 'tam', 'tham', 'ques']
   },
   {
     label: 'รอสักครู่',
+    category: 'wait',
     text: 'รอสักครู่นะคะ ดิฉันเช็คให้เลยค่ะ',
-    keywords: ['รอ', 'wait', 'เช็ค', 'check', 'ro', 'rosakru', 'check']
+    keywords: ['รอ', 'wait', 'เช็ค', 'check', 'ro', 'rosakru', 'check', 'wai']
   },
   {
     label: 'ยืนยันออเดอร์',
+    category: 'confirm',
     text: 'ยืนยันออเดอร์แล้วนะคะ จัดส่งให้โดยเร็วที่สุดเลยค่ะ',
-    keywords: ['ยืนยัน', 'confirm', 'order', 'สั่ง', 'yuen', 'yuenya', 'order', 'sang']
+    keywords: ['ยืนยัน', 'confirm', 'order', 'สั่ง', 'yuen', 'yuenya', 'sang', 'conf']
   }
 ])
 
-// Filter options based on input after "/s"
+// Filter options based on input after "/s" or direct command
 const filteredOptions = computed(() => {
-  if (!inputText.value.startsWith('/s')) {
+  if (!inputText.value.startsWith('/')) {
     return quickReplyOptions.value
   }
 
-  const searchText = inputText.value.slice(2).trim().toLowerCase()
+  // Handle /s command
+  if (inputText.value.startsWith('/s')) {
+    const searchText = inputText.value.slice(2).trim().toLowerCase()
 
-  if (searchText === '') {
-    return quickReplyOptions.value
+    if (searchText === '') {
+      return quickReplyOptions.value
+    }
+
+    return quickReplyOptions.value.filter(option => {
+      const labelMatch = option.label.toLowerCase().includes(searchText)
+      const textMatch = option.text.toLowerCase().includes(searchText)
+      const categoryMatch = option.category.toLowerCase().includes(searchText)
+      const keywordMatch = option.keywords.some(keyword => keyword.includes(searchText))
+      return labelMatch || textMatch || categoryMatch || keywordMatch
+    })
   }
 
+  // Handle /p command (packages)
+  if (inputText.value.startsWith('/p')) {
+    return []
+  }
+
+  // Handle direct category commands like /gree, /pric, etc.
+  const command = inputText.value.slice(1).toLowerCase()
   return quickReplyOptions.value.filter(option => {
-    const labelMatch = option.label.toLowerCase().includes(searchText)
-    const textMatch = option.text.toLowerCase().includes(searchText)
-    const keywordMatch = option.keywords.some(keyword => keyword.includes(searchText))
-    return labelMatch || textMatch || keywordMatch
+    const categoryMatch = option.category.toLowerCase().startsWith(command)
+    const keywordMatch = option.keywords.some(kw => kw.toLowerCase().startsWith(command))
+    return categoryMatch || keywordMatch
   })
 })
 
@@ -214,11 +238,26 @@ const updateContextualSuggestions = () => {
 }
 
 const handleInput = () => {
-  // Check if user typed "/s" or "/p"
+  // Check if user typed "/s", "/p", or a direct category command
   if (inputText.value.startsWith('/s') || inputText.value.startsWith('/p')) {
     showOptions.value = true
     selectedIndex.value = 0
     updateContextualSuggestions()
+  } else if (inputText.value.startsWith('/')) {
+    // Check if it's a direct category command
+    const command = inputText.value.slice(1).toLowerCase()
+    const matchingOption = quickReplyOptions.value.find(opt =>
+      opt.category.toLowerCase().startsWith(command) ||
+      opt.keywords.some(kw => kw.toLowerCase().startsWith(command))
+    )
+
+    if (matchingOption) {
+      showOptions.value = true
+      selectedIndex.value = 0
+      updateContextualSuggestions()
+    } else {
+      showOptions.value = false
+    }
   } else {
     showOptions.value = false
   }
@@ -291,7 +330,7 @@ const closeOptions = () => {
 }
 
 const sendMessage = () => {
-  if (inputText.value.trim() && !inputText.value.startsWith('/s') && !inputText.value.startsWith('/p')) {
+  if (inputText.value.trim() && !inputText.value.startsWith('/')) {
     const now = new Date()
     const timeString = now.toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -300,7 +339,7 @@ const sendMessage = () => {
     })
 
     messages.value.push({
-      user: 'You',
+      user: 'D',
       text: inputText.value,
       time: timeString,
       isUser: true
@@ -327,7 +366,7 @@ const sendMessage = () => {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  background: #0f0f0f;
+  background: #1a1a1a;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Noto Sans', 'Helvetica', sans-serif;
   overflow: hidden;
   position: relative;
@@ -335,8 +374,8 @@ const sendMessage = () => {
 
 .chat-header {
   padding: 12px 16px;
-  background: #1a1a1a;
-  border-bottom: 1px solid #2a2a2a;
+  background: #252525;
+  border-bottom: 1px solid #3a3a3a;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
@@ -391,7 +430,7 @@ const sendMessage = () => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  background: #0f0f0f;
+  background: #1a1a1a;
 }
 
 .message-wrapper {
@@ -429,9 +468,9 @@ const sendMessage = () => {
   max-width: 70%;
   padding: 10px 14px;
   border-radius: 18px;
-  background: #1e1e1e;
+  background: #2a2a2a;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
 }
 
 .user-message .message-bubble {
@@ -473,41 +512,24 @@ const sendMessage = () => {
 .input-container {
   position: relative;
   padding: 12px 16px;
-  background: #1a1a1a;
-  border-top: 1px solid #2a2a2a;
+  background: #252525;
+  border-top: 1px solid #3a3a3a;
 }
 
 .input-wrapper {
   display: flex;
   gap: 8px;
   align-items: center;
-  background: #252525;
+  background: #2a2a2a;
   border-radius: 24px;
   padding: 4px 8px;
-  border: 1px solid #333;
+  border: 1px solid #404040;
   transition: border-color 0.2s;
 }
 
 .input-wrapper:focus-within {
   border-color: #667eea;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-}
-
-.attach-button {
-  background: transparent;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-  transition: color 0.2s;
-}
-
-.attach-button:hover {
-  color: #fff;
 }
 
 .message-input {
@@ -565,12 +587,12 @@ const sendMessage = () => {
 
 .options-popup {
   flex: 1;
-  background: #1e1e1e;
+  background: #2a2a2a;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid #333;
+  border: 1px solid #404040;
 }
 
 
@@ -579,8 +601,8 @@ const sendMessage = () => {
   font-weight: 600;
   font-size: 13px;
   color: #999;
-  border-bottom: 1px solid #2a2a2a;
-  background: #252525;
+  border-bottom: 1px solid #404040;
+  background: #333333;
   position: sticky;
   top: 0;
   border-radius: 12px 12px 0 0;
@@ -589,7 +611,7 @@ const sendMessage = () => {
 .option-item {
   padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #404040;
   transition: background 0.2s, border-left 0.2s;
   border-left: 3px solid transparent;
 }
@@ -600,7 +622,7 @@ const sendMessage = () => {
 }
 
 .option-item:hover {
-  background: #252525;
+  background: #333333;
 }
 
 .option-item.highlighted {
@@ -638,7 +660,7 @@ const sendMessage = () => {
   color: #667eea;
   margin-top: 6px;
   padding-top: 6px;
-  border-top: 1px solid #2a2a2a;
+  border-top: 1px solid #404040;
 }
 
 /* Scrollbar styling */
