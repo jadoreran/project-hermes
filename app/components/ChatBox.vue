@@ -119,6 +119,14 @@
         >
           <span>🤖</span>
         </button>
+        <button
+          @click="toggleAutoTranslate"
+          class="auto-translate-button"
+          :class="{ 'active': autoTranslateEnabled }"
+          :title="autoTranslateEnabled ? 'ปิดการแปลเป็นภาษาไทยอัตโนมัติ' : 'เปิดการแปลเป็นภาษาไทยอัตโนมัติ'"
+        >
+          <span>🌐</span>
+        </button>
         <input
           v-model="inputText"
           @input="handleInput"
@@ -216,6 +224,9 @@ const activeTags = computed(() => appliedTags.value)
 // Auto-correct toggle
 const autoCorrectEnabled = ref(false)
 const isAutoCorrecting = ref(false)
+
+// Auto-translate toggle
+const autoTranslateEnabled = ref(false)
 
 // Listen for AI panel "Send Message" clicks
 const handleSendAIMessage = (event: CustomEvent) => {
@@ -531,6 +542,51 @@ const closeOptions = () => {
 
 const toggleAutoCorrect = () => {
   autoCorrectEnabled.value = !autoCorrectEnabled.value
+}
+
+const toggleAutoTranslate = async () => {
+  autoTranslateEnabled.value = !autoTranslateEnabled.value
+
+  // If enabling translation, translate all existing messages
+  if (autoTranslateEnabled.value) {
+    await translateAllMessages()
+  }
+}
+
+const translateAllMessages = async () => {
+  // Translate all messages to Thai
+  for (let i = 0; i < messages.value.length; i++) {
+    const message = messages.value[i]
+    if (!message) continue
+
+    // Skip if already in Thai (simple heuristic check)
+    if (/[\u0E00-\u0E7F]/.test(message.text)) {
+      continue
+    }
+
+    try {
+      const translated = await openAIService.sendChatCompletion([
+        {
+          role: 'system',
+          content: 'You are a professional translator. Translate the given text to Thai. Return ONLY the translated text, nothing else. Preserve the tone and meaning.'
+        },
+        {
+          role: 'user',
+          content: message.text
+        }
+      ], {
+        model: 'gpt-4o-mini',
+        max_tokens: 300
+      })
+
+      const translatedText = translated.choices[0]?.message?.content?.trim()
+      if (translatedText && messages.value[i]) {
+        messages.value[i]!.text = translatedText
+      }
+    } catch (error) {
+      console.error('Translation error:', error)
+    }
+  }
 }
 
 const sendMessage = async () => {
@@ -956,6 +1012,45 @@ const analyzeAutoTags = async () => {
 
 .auto-correct-button.active:hover {
   box-shadow: 0 4px 12px rgba(56, 239, 125, 0.5);
+}
+
+.auto-translate-button {
+  width: 36px;
+  height: 36px;
+  background: #333;
+  color: #999;
+  border: 2px solid #555;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.auto-translate-button:hover {
+  background: #3a3a3a;
+  border-color: #666;
+  transform: scale(1.05);
+}
+
+.auto-translate-button:active {
+  transform: scale(0.95);
+}
+
+.auto-translate-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.auto-translate-button.active:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
 }
 
 .ai-loading {
