@@ -640,13 +640,13 @@ const sendMessage = () => {
 }
 
 .send-button {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   background: linear-gradient(135deg, #FF385C 0%, #d81f43 100%);
   color: white;
   border: none;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -655,6 +655,8 @@ const sendMessage = () => {
   transition: transform 0.2s, box-shadow 0.2s;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(255, 56, 92, 0.3);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .send-button:hover {
@@ -701,11 +703,16 @@ const sendMessage = () => {
 }
 
 .option-item {
-  padding: 12px 16px;
+  padding: 16px 16px;
   cursor: pointer;
   border-bottom: 1px solid #404040;
   transition: background 0.2s, border-left 0.2s;
   border-left: 3px solid transparent;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .option-item:last-child {
